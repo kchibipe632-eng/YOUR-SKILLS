@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Custom Media Player</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+textarea { width: 100%; height: 150px; }
+button { margin: 5px; }
+</style>
+</head>
+<body>
+
+<h2>Audio & Video Player</h2>
+
+<input type="file" id="fileInput" multiple accept="audio/*,video/*">
+<br>
+<button id="openAll">Open All Media</button>
+<button id="playBtn">Play</button>
+<button id="pauseBtn">Pause</button>
+<button id="stopBtn">Stop</button>
+<button id="nextBtn">Next</button>
+<button id="prevBtn">Previous</button>
+<button id="repeatBtn">Repeat</button>
+<br><br>
+
+<label>Volume: <span id="volVal">100</span>%</label>
+<input type="range" id="volumeSlider" min="0" max="200" value="100">
+<br><br>
+
+<textarea id="fileList" readonly></textarea>
+<br>
+
+<audio id="audioPlayer" controls style="width:100%; display:none;"></audio>
+<video id="videoPlayer" controls style="width:100%; display:none;" height="300"></video>
+
+<script>
+let files = [];
+let currentIndex = 0;
+let repeat = false;
+
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const audioPlayer = document.getElementById('audioPlayer');
+const videoPlayer = document.getElementById('videoPlayer');
+const volumeSlider = document.getElementById('volumeSlider');
+const volVal = document.getElementById('volVal');
+
+document.getElementById('openAll').addEventListener('click', () => {
+files = Array.from(fileInput.files).sort((a, b) => a.name.localeCompare(b.name));
+fileList.value = files.map(f => f.name).join('\n');
+currentIndex = 0;
+playMedia(currentIndex);
+});
+
+function playMedia(index) {
+if (files.length === 0) return;
+
+const file = files[index];
+const url = URL.createObjectURL(file);
+
+audioPlayer.style.display = 'none';
+videoPlayer.style.display = 'none';
+
+if(file.type.startsWith('audio/')){
+audioPlayer.src = url;
+audioPlayer.style.display = 'block';
+audioPlayer.play();
+} else if(file.type.startsWith('video/')){
+videoPlayer.src = url;
+videoPlayer.style.display = 'block';
+videoPlayer.play();
+}
+}
+
+document.getElementById('playBtn').addEventListener('click', () => {
+if(audioPlayer.style.display === 'block') audioPlayer.play();
+if(videoPlayer.style.display === 'block') videoPlayer.play();
+});
+
+document.getElementById('pauseBtn').addEventListener('click', () => {
+if(audioPlayer.style.display === 'block') audioPlayer.pause();
+if(videoPlayer.style.display === 'block') videoPlayer.pause();
+});
+
+document.getElementById('stopBtn').addEventListener('click', () => {
+if(audioPlayer.style.display === 'block'){ audioPlayer.pause(); audioPlayer.currentTime = 0; }
+if(videoPlayer.style.display === 'block'){ videoPlayer.pause(); videoPlayer.currentTime = 0; }
+});
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+currentIndex = (currentIndex + 1) % files.length;
+playMedia(currentIndex);
+});
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+currentIndex = (currentIndex - 1 + files.length) % files.length;
+playMedia(currentIndex);
+});
+
+document.getElementById('repeatBtn').addEventListener('click', () => {
+repeat = !repeat;
+alert("Repeat is " + (repeat ? "ON" : "OFF"));
+});
+
+volumeSlider.addEventListener('input', () => {
+const vol = volumeSlider.value / 100;
+volVal.textContent = volumeSlider.value;
+audioPlayer.volume = Math.min(vol, 2);
+videoPlayer.volume = Math.min(vol, 2);
+});
+
+// Auto-play next media
+audioPlayer.addEventListener('ended', () => {
+if(currentIndex < files.length - 1) currentIndex++;
+else if(repeat) currentIndex = 0;
+playMedia(currentIndex);
+});
+videoPlayer.addEventListener('ended', () => {
+if(currentIndex < files.length - 1) currentIndex++;
+else if(repeat) currentIndex = 0;
+playMedia(currentIndex);
+});
+</script>
+
+</body>
+</html>
+
+
+
+
